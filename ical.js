@@ -96,10 +96,11 @@
 
       // Store as string - worst case scenario
       storeParam(name)(val, undefined, curr)
+      storeParam(name+ '_raw')(val, undefined, curr)
 
       if (params && params[0] === "VALUE=DATE") {
+      	storeParam('dateRawFormat')('PLAIN', undefined, curr);
         // Just Date
-
         var comps = /^(\d{4})(\d{2})(\d{2})$/.exec(val);
         if (comps !== null) {
           // No TZ info - assume same timezone as this computer
@@ -118,6 +119,7 @@
       var comps = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z)?$/.exec(val);
       if (comps !== null) {
         if (comps[7] == 'Z'){ // GMT
+		  storeParam('dateRawFormat')('GMT', undefined, curr);
           curr[name] = new Date(Date.UTC(
             parseInt(comps[1], 10),
             parseInt(comps[2], 10)-1,
@@ -128,6 +130,7 @@
           ));
           // TODO add tz
         } else {
+		  storeParam('dateRawFormat')('NOTZ', undefined, curr);
           curr[name] = new Date(
             parseInt(comps[1], 10),
             parseInt(comps[2], 10)-1,
@@ -157,11 +160,7 @@
     var separatorPattern = /\s*,\s*/g;
     return function (val, params, curr) {
       storeParam(val, params, curr)
-      if (curr[name] === undefined)
-        curr[name] = val ? val.split(separatorPattern) : []
-      else
-        if (val)
-          curr[name] = curr[name].concat(val.split(separatorPattern))
+      curr[name] = val ? val.split(separatorPattern) : []
       return curr
     }
   }
